@@ -1,0 +1,7 @@
+{
+  "backend": "QtAgg",
+  "save_dir": "rendered_output",
+  "auto_save": true,
+  "auto_display": true,
+  "figure_dpi": 150
+}

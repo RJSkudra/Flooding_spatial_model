@@ -1,0 +1,166 @@
+{
+  "plot_order": [
+    "lvm",
+    "augsnes_karte",
+    "lvm_gravji",
+    "lidar",
+    "LAD K\u016bdraugsne",
+    "deklar\u0113tie_lauki_2025"
+  ],
+  "lidar": {
+    "type": "lidar",
+    "name": "LIDAR punkti",
+    "geometry_type": "point",
+    "fill_color": "#0000FF",
+    "line_color": "#0000FF",
+    "alpha": 0.4,
+    "legend": true
+  },
+  "augsnes_karte": {
+    "type": "shapefile",
+    "path": "../../../src/shp_data/Augsnu_karte/Augsnes_5v_2017.shp",
+    "name": "Augsnes karte (Tipi)",
+    "filter": {
+      "field": "ATips",
+      "values": [
+        "Ta",
+        "Tag",
+        "Tp",
+        "Tpg",
+        "Tz",
+        "Tzg"
+      ]
+    },
+    "geometry_type": "polygon",
+    "fill_color": "#55aaff",
+    "line_color": "#00007f",
+    "alpha": 0.6,
+    "legend": true
+  },
+  "LAD K\u016bdraugsne": {
+    "type": "shapefile",
+    "name": "LAD K\u016bdraugsne",
+    "path": "../../../src/shp_data/kudraugne_LAD/kudraugsne_LAD.shp",
+    "geometry_type": "polygon",
+    "fill_color": "#ffff7f",
+    "line_color": "#ff0000",
+    "alpha": 0.6,
+    "legend": true
+  },
+  "lvm_gravji": {
+    "type": "shapefile",
+    "path": "../../../src/shp_data/LVM_GRAVJI/LVM_GRAVJI_Shape.shp",
+    "name": "LVM Gr\u0101vji",
+    "geometry_type": "line",
+    "fill_color": null,
+    "line_color": "#0000ff",
+    "alpha": 0.9,
+    "legend": true
+  },
+  "lvm": {
+    "type": "wms",
+    "url": "https://lvmgeoserver.lvm.lv/geoserver/ows",
+    "layers": "public:Orto_LKS",
+    "name": "LVM Ortofoto",
+    "attribution": "\u00a9 LVM",
+    "format": "image/png",
+    "version": "1.0.0",
+    "styles": "raster",
+    "crs": "EPSG:3059",
+    "geometry_type": null,
+    "fill_color": null,
+    "line_color": null,
+    "alpha": 1.0,
+    "legend": false
+  },
+  "drainage_arcgis": {
+    "type": "arcgis_tile",
+    "url": "https://www.melioracija.lv/proxy/93B0862CB25D4851A5872F802F65FE0D/MKGISCacheLKS/MapServer/tile/{z}/{y}/{x}",
+    "name": "Drainage Systems (ArcGIS Tile)",
+    "geometry_type": null,
+    "fill_color": null,
+    "line_color": null,
+    "alpha": 1.0,
+    "legend": true
+  },
+  "drenu_savienojumi": {
+    "type": "arcgis_feature",
+    "layer_id": 6,
+    "name": "Savienojumi",
+    "geometry_type": "point",
+    "color": "#00FF00",
+    "marker_shape": "circle",
+    "marker_size": 8,
+    "marker_style": "half_filled",
+    "marker_outline_color": "#006400",
+    "marker_outline_width": 1
+  },
+  "drenu_buves": {
+    "type": "arcgis_feature",
+    "layer_id": 7,
+    "name": "Dren\u0101\u017eas t\u012bkla b\u016bves",
+    "geometry_type": "point",
+    "color": "#00FF00"
+  },
+  "drenu_kolektori_lieli": {
+    "type": "arcgis_feature",
+    "layer_id": 8,
+    "name": "Liela diametra kolektori",
+    "geometry_type": "polyline",
+    "color": "#00FF00",
+    "line_color": "#00FF00",
+    "line_width": 5,
+    "line_style": "double",
+    "parallel_offset": 3,
+    "alpha": 1.0
+  },
+  "drenu_kolektori": {
+    "type": "arcgis_feature",
+    "layer_id": 9,
+    "name": "Drenu kolektori",
+    "geometry_type": "polyline",
+    "color": "#006400",
+    "line_color": "#006400",
+    "line_width": 3,
+    "line_style": "double",
+    "parallel_offset": 2,
+    "alpha": 1.0
+  },
+  "drenas": {
+    "type": "arcgis_feature",
+    "layer_id": 10,
+    "name": "Drenas",
+    "geometry_type": "polyline",
+    "color": "#00FF00",
+    "line_color": "#00FF00",
+    "line_width": 3,
+    "line_style": "solid",
+    "alpha": 1.0
+  },
+  "novadgravji": {
+    "type": "arcgis_feature",
+    "layer_id": 14,
+    "name": "Novadgr\u0101vji",
+    "geometry_type": "polyline",
+    "url": "https://karte.lad.gov.lv/arcgis/rest/services/karte_pub/MapServer",
+    "crs": "EPSG:3059",
+    "color": "#0070FF",
+    "line_color": "#0070FF",
+    "line_width": 6,
+    "line_style": "solid",
+    "alpha": 0.5
+  },
+  "deklarētie_lauki_2025": {
+    "type": "arcgis_feature",
+    "layer_id": 7,
+    "name": "Deklarētie lauki 2025",
+    "url": "https://karte.lad.gov.lv/arcgis/rest/services/karte_pub/MapServer",
+    "crs": "EPSG:3059",
+    "geometry_type": "polygon",
+    "fill_color": "#90ee90",        
+    "line_color": "#006400",        
+    "line_width": 2,
+    "alpha": 0.5,
+    "legend": true
+    }
+}

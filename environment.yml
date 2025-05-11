@@ -1,0 +1,23 @@
+name: major-thesis
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - gdal=3.4
+  - rasterio=1.2
+  - pdal=2.4
+  - sqlite=3.38
+  - numpy
+  - matplotlib
+  - tqdm
+  - laspy
+  - contextily
+  - pyproj
+  - scipy
+  - shapely
+  - conda
+  - pyqt
+  - pip
+  - pip:
+    - geopandas
