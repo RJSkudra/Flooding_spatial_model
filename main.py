@@ -45,6 +45,8 @@ class MainInterface(QMainWindow):
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+        
+    
 
     def run_lidar2dem(self):
         """Run the Lidar2Dem module."""
@@ -62,8 +64,29 @@ class MainInterface(QMainWindow):
     def run_wms_editor(self):
         self.wms_editor_window = WmsLayerEditorWindow()
         self.wms_editor_window.show()
+        
+    def ensure_data_folders():
+    """
+    Ensure the required 'dati' folder structure exists.
+    Add or modify the subfolders list as needed.
+    """
+    base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dati")
+    subfolders = [
+        "dem_faili",
+        "izejas_dati",
+        "lidar_dati",
+        "shp_dati",
+        "tmp"
+    ]
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+    for sub in subfolders:
+        sub_path = os.path.join(base_dir, sub)
+        if not os.path.exists(sub_path):
+            os.makedirs(sub_path)
 
 if __name__ == "__main__":
+    ensure_data_folders()
     app = QApplication(sys.argv)
     main_window = MainInterface()
     main_window.show()
