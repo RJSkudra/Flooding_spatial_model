@@ -4,12 +4,10 @@ Main interface for selecting between DEM generation and flood simulation.
 
 import os
 import sys
-import src
-
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
-from FloodGIF_scripts.Flood_GIF import main as flood_gif_main
-from Lidar2Dem_scripts.Lidar2Dem import main as lidar2dem_main
-from utils.layers.layer_editor import WmsLayerEditorWindow
+from src.FloodGIF_scripts.Flood_GIF import main as flood_gif_main
+from src.Lidar2Dem_scripts.Lidar2Dem import main as lidar2dem_main
+from src.utils.layers.layer_editor import WmsLayerEditorWindow
 
 def ensure_data_folders():
     base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dati")
@@ -39,19 +37,17 @@ class MainInterface(QMainWindow):
         self.dem_button = QPushButton("Ģenerēt DEM")
         self.simulation_button = QPushButton("Ģenerēt plūdu simulāciju")
         #self.rainfall_sim_button = QPushButton("Lietus plūdu simulācija")
-        self.wms_editor_button = QPushButton("Rediģēt ģeotelpisko datu slāņus")
+        self.layer_editor_button = QPushButton("Rediģēt ģeotelpisko datu slāņus")
 
         # Connect buttons to actions
         self.dem_button.clicked.connect(self.run_lidar2dem)
         self.simulation_button.clicked.connect(self.run_flood_gif)
-        #self.rainfall_sim_button.clicked.connect(self.run_rainfall_flood_sim)
-        self.wms_editor_button.clicked.connect(self.run_wms_editor)
+        self.layer_editor_button.clicked.connect(self.run_layer_editor)
 
         # Add buttons to layout
         layout.addWidget(self.dem_button)
         layout.addWidget(self.simulation_button)
-        #layout.addWidget(self.rainfall_sim_button)
-        layout.addWidget(self.wms_editor_button)
+        layout.addWidget(self.layer_editor_button)
 
         # Set central widget
         container = QWidget()
@@ -64,10 +60,9 @@ class MainInterface(QMainWindow):
     def run_flood_gif(self):
         flood_gif_main(QApplication.instance())
 
-    def run_wms_editor(self):
-        self.wms_editor_window = WmsLayerEditorWindow()
-        self.wms_editor_window.show()
-        
+    def run_layer_editor(self):
+        self.layer_editor_window = WmsLayerEditorWindow()
+        self.layer_editor_window.show()
 
 
 if __name__ == "__main__":

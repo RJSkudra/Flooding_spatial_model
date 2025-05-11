@@ -20,62 +20,71 @@ logger = logging.getLogger(__name__)
 # Constants
 STEPS = 500
 
-# @njit  # <-- Comment out this line to disable Numba
-def simulate_flood_numba(dem_array, row, col, num_frames=100):
+def simulate_flood(dem_array: np.ndarray, source_point: Tuple[float, float], dem_transform: Any) -> np.ndarray:
     """
     Simulates the spread of flood water from a source point over a DEM array.
+
     Args:
         dem_array (np.ndarray): The digital elevation model array.
-        row (int): Row index of the source point.
-        col (int): Column index of the source point.
-        num_frames (int): Number of frames to record (for animation).
+        source_point (Tuple[float, float]): The coordinates of the flood source point.
+        dem_transform (Any): The transformation object for the DEM.
+
     Returns:
-        np.ndarray: Boolean array of flooded areas for each frame (frames, H, W).
+        np.ndarray: A boolean array indicating flooded areas.
     """
     flood_array = np.zeros_like(dem_array, dtype=bool)
     visited = np.zeros_like(dem_array, dtype=bool)
-    frames = []
-    from heapq import heappush, heappop
-
+    try:
+        row, col = rasterio.transform.rowcol(dem_transform, source_point[0], source_point[1])
+    except Exception as e:
+        logger.error(f"Error determining source point location: {e}")
+        return flood_array
     if not (0 <= row < dem_array.shape[0] and 0 <= col < dem_array.shape[1]):
-        # Return empty frames if source is out of bounds
-        for _ in range(num_frames):
-            frames.append(np.zeros_like(dem_array, dtype=bool))
-        return np.stack(frames, axis=0)
-
+        return flood_array
     queue = []
     heappush(queue, (dem_array[row, col], row, col))
     max_water_level = dem_array[row, col]
-    total_cells = np.sum(np.isfinite(dem_array))
-    cells_per_frame = max(1, total_cells // num_frames)
-    flooded_count = 0
-    frame_idx = 0
+    while queue or np.any(~visited):
+        if not queue:
+            # Find the next minimum elevation around the flooded area
+            next_water_level = float('inf')
+            for r, c in zip(*np.where(flood_array)):  # Iterate over all flooded cells
+                for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Check neighbors
+                    nr, nc = r + dr, c + dc
+                    if (
+                        0 <= nr < dem_array.shape[0]
+                        and 0 <= nc < dem_array.shape[1]
+                        and not visited[nr, nc]  # Only consider unvisited cells
+                        and dem_array[nr, nc] > max_water_level  # Higher than current water level
+                    ):
+                        next_water_level = min(next_water_level, dem_array[nr, nc])
+                
+                # If no valid neighbors are found, break the loop
+            if next_water_level == float('inf'):
+                break
 
-    while queue:
+            # Update the max water level
+            max_water_level = next_water_level
+            continue
+
         elevation, r, c = heappop(queue)
         if visited[r, c]:
             continue
-        visited[r, c] = True
-        flood_array[r, c] = True
-        flooded_count += 1
-        max_water_level = max(max_water_level, elevation)
-        # Save a frame every ~cells_per_frame flooded cells
-        if flooded_count % cells_per_frame == 0 and frame_idx < num_frames:
-            frames.append(flood_array.copy())
-            frame_idx += 1
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nr, nc = r + dr, c + dc
-            if (
-                0 <= nr < dem_array.shape[0]
-                and 0 <= nc < dem_array.shape[1]
-                and not visited[nr, nc]
-                and dem_array[nr, nc] <= max_water_level
-            ):
-                heappush(queue, (dem_array[nr, nc], nr, nc))
-    # Fill remaining frames if not enough flooded cells
-    while len(frames) < num_frames:
-        frames.append(flood_array.copy())
-    return np.stack(frames, axis=0)
+
+    visited[r, c] = True
+    flood_array[r, c] = True
+    max_water_level = max(max_water_level, elevation)
+
+    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        nr, nc = r + dr, c + dc
+        if (
+            0 <= nr < dem_array.shape[0]
+            and 0 <= nc < dem_array.shape[1]
+            and not visited[nr, nc]
+            and dem_array[nr, nc] <= max_water_level
+        ):
+            heappush(queue, (dem_array[nr, nc], nr, nc))
+    return flood_array
 
 
 
