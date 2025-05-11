@@ -4,16 +4,12 @@ Main interface for selecting between DEM generation and flood simulation.
 
 import os
 import sys
-# Add the src directory to sys.path for correct imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import src
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
 from FloodGIF_scripts.Flood_GIF import main as flood_gif_main
 from Lidar2Dem_scripts.Lidar2Dem import main as lidar2dem_main
-from RainfallFloodSim_scripts.RainfallFloodSimUI import main as rainfall_flood_main
-from utils.Flood.wms_layer_editor import WmsLayerEditorWindow
-from RainfallFloodSim_scripts.RainfallFloodSimUI import RainfallFloodSimUI
-import builtins
+from utils.layers.layer_editor import WmsLayerEditorWindow
 
 def ensure_data_folders():
     base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dati")
@@ -61,18 +57,12 @@ class MainInterface(QMainWindow):
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
-        
-    
 
     def run_lidar2dem(self):
         lidar2dem_main()
 
     def run_flood_gif(self):
         flood_gif_main(QApplication.instance())
-
-    def run_rainfall_flood_sim(self):
-        self.rainfall_window = RainfallFloodSimUI()
-        self.rainfall_window.show()
 
     def run_wms_editor(self):
         self.wms_editor_window = WmsLayerEditorWindow()
