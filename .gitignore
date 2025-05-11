@@ -3,16 +3,16 @@ LVM_GRAVJI.zip
 .venv/
 *.las
 *.laz
-lidar_dati/*
-izejas_dati/*
-dem_faili/*
+lidar_dati
+izejas_dati
+dem_faili
 .conda/
 *.gif
 *.tif
 *.jpeg
 *.jpg
 *.png
-shp_dati/*
+shp_dati
 tmp
 *.ignore
 
