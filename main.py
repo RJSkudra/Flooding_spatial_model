@@ -15,6 +15,22 @@ from utils.Flood.wms_layer_editor import WmsLayerEditorWindow
 from RainfallFloodSim_scripts.RainfallFloodSimUI import RainfallFloodSimUI
 import builtins
 
+def ensure_data_folders():
+    base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dati")
+    subfolders = [
+        "dem_faili",
+        "izejas_dati",
+        "lidar_dati",
+        "shp_dati",
+        "tmp"
+    ]
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+    for sub in subfolders:
+        sub_path = os.path.join(base_dir, sub)
+        if not os.path.exists(sub_path):
+            os.makedirs(sub_path)
+
 class MainInterface(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -49,15 +65,12 @@ class MainInterface(QMainWindow):
     
 
     def run_lidar2dem(self):
-        """Run the Lidar2Dem module."""
         lidar2dem_main()
 
     def run_flood_gif(self):
-        print("Flood simulation button clicked.")
         flood_gif_main(QApplication.instance())
 
     def run_rainfall_flood_sim(self):
-        """Run the rainfall-based flood simulation module."""
         self.rainfall_window = RainfallFloodSimUI()
         self.rainfall_window.show()
 
@@ -65,25 +78,7 @@ class MainInterface(QMainWindow):
         self.wms_editor_window = WmsLayerEditorWindow()
         self.wms_editor_window.show()
         
-    def ensure_data_folders():
-    """
-    Ensure the required 'dati' folder structure exists.
-    Add or modify the subfolders list as needed.
-    """
-    base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dati")
-    subfolders = [
-        "dem_faili",
-        "izejas_dati",
-        "lidar_dati",
-        "shp_dati",
-        "tmp"
-    ]
-    if not os.path.exists(base_dir):
-        os.makedirs(base_dir)
-    for sub in subfolders:
-        sub_path = os.path.join(base_dir, sub)
-        if not os.path.exists(sub_path):
-            os.makedirs(sub_path)
+
 
 if __name__ == "__main__":
     ensure_data_folders()
