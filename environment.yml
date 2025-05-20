@@ -8,6 +8,8 @@ dependencies:
   - rasterio=1.2
   - pdal=2.4
   - sqlite=3.38
+  - scikit-image
+  - imageio
   - numpy
   - matplotlib
   - tqdm

@@ -20,14 +20,13 @@ from matplotlib.lines import Line2D
 from matplotlib.widgets import PolygonSelector
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
 import builtins
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from config.rendering_config import setup_rendering, get_output_path
-from utils.dem_utils import load_dem, validate_lks97_coords, modify_dem_with_dam_line, save_dem_as_jpeg
-from utils.visual_outputs import create_flood_animation
-from FloodGIF_scripts.ui import DrawingWindow
-from FloodGIF_scripts.flood_simulation import update_flood_frame
-from FloodGIF_scripts.visualization_utils import load_wms_layers
-from utils.Flood.layer_manager import load_wms_layers, get_plot_order, preload_layers
+from src.config.rendering_config import setup_rendering, get_output_path
+from src.utils.dem_utils import load_dem, validate_lks97_coords, modify_dem_with_dam_line, save_dem_as_jpeg
+from src.utils.visual_outputs import create_flood_animation
+from src.FloodGIF_scripts.ui import DrawingWindow
+from src.FloodGIF_scripts.flood_simulation import update_flood_frame
+from src.FloodGIF_scripts.visualization_utils import load_wms_layers
+from src.utils.layers.layer_manager import load_wms_layers, get_plot_order, preload_layers
 
 # Configure matplotlib rendering before importing pyplot
 config = setup_rendering(matplotlib)

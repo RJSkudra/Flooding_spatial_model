@@ -24,8 +24,8 @@ from pyproj import CRS, Transformer
 import geopandas as gpd
 
 # Import custom rendering configuration
-from config.rendering_config import setup_rendering, get_output_path
-from utils.Flood.layer_manager import load_wms_layers, get_plot_order, preload_layers
+from src.config.rendering_config import setup_rendering, get_output_path
+from src.utils.layers.layer_manager import load_wms_layers, get_plot_order, preload_layers
 import matplotlib.patches as mpatches
 
 def plot_half_filled_circle(ax, x, y, size, color, outline_color, outline_width, zorder=10):

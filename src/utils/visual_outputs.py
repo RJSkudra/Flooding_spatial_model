@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 from tqdm import tqdm
-from config.rendering_config import get_output_path
+from src.config.rendering_config import get_output_path
 from typing import Any
 import builtins
 from matplotlib.colors import LinearSegmentedColormap
@@ -19,7 +19,6 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
-from rasterio.plot import show as rasterio_show
 import numpy as np
 import scipy.ndimage as ndi
 from skimage import measure

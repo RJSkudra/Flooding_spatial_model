@@ -12,8 +12,6 @@ from collections import deque
 import geopandas as gpd
 from rasterio import features
 from shapely.geometry import shape
-from numba import njit
-from numba.typed import List
 
 logger = logging.getLogger(__name__)
 

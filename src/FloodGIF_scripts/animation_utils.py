@@ -2,8 +2,8 @@ import builtins
 import numpy as np
 from matplotlib.animation import FuncAnimation, PillowWriter
 from tqdm import tqdm
-from utils.Flood.visualization_utils import generate_water_elevation_plot
-from config.rendering_config import get_output_path
+from src.FloodGIF_scripts.visualization_utils import generate_water_elevation_plot
+from src.config.rendering_config import get_output_path
 
 def create_flood_animation(fig, ax, dem_array, dem_transform, water_source_point, dam_points, topo_cmap, new_cmap, update_flood_frame_func):
     num_frames = getattr(builtins, 'num_frames', 100)
