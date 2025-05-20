@@ -1,5 +1,5 @@
 """
-WMS Layer Editor GUI for editing and previewing wms_layers.json.
+WMS Layer Editor GUI for editing and previewing layers.json.
 """
 
 import os
@@ -17,7 +17,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from src.FloodGIF_scripts.visualization_utils import plot_double_line, plot_half_filled_circle
 
-WMS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wms_layers.json')
+WMS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'layers.json')
 
 class WmsLayerEditorWindow(QMainWindow):
     def __init__(self):
