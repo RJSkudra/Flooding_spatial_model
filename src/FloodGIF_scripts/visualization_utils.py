@@ -7,25 +7,21 @@ import os
 import sys
 import json
 import logging
-import threading
+import builtins
 from typing import Any, Dict, Optional
-
 import numpy as np
 import matplotlib
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame, QCheckBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QCheckBox
 from PyQt5.QtCore import QEventLoop
 import laspy
-from pyproj import CRS, Transformer
-import geopandas as gpd
 
 # Import custom rendering configuration
 from src.config.rendering_config import setup_rendering, get_output_path
-from src.utils.layers.layer_manager import load_wms_layers, get_plot_order, preload_layers
+from src.utils.layers.layer_manager import load_geo_layers, get_plot_order, preload_layers
 import matplotlib.patches as mpatches
 
 def plot_half_filled_circle(ax, x, y, size, color, outline_color, outline_width, zorder=10):
@@ -57,7 +53,7 @@ def plot_double_line(ax, coords, color, width, offset, alpha=1.0, zorder=10):
 config = setup_rendering(matplotlib)
 
 # Path to the WMS layers configuration file
-WMS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wms_layers.json')
+builtins.WMS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'layers.json')
 
 # Default LVM layer configuration (used if file doesn't exist)
 DEFAULT_LVM_LAYER = {
@@ -75,21 +71,22 @@ DEFAULT_LVM_LAYER = {
 
 # Magic numbers/constants
 SCATTER_DOWNSAMPLE = 100
-WMS_WIDTH = 1200
-WMS_HEIGHT = 1080
+LAYER_WIDTH = 1200
+LAYER_HEIGHT = 1080
 BUFFER_RATIO = 0.05
+
 
 logger = logging.getLogger(__name__)
 
 
-def save_wms_layers(layers: Dict[str, Any]) -> None:
+def save_geo_layers(layers: Dict[str, Any]) -> None:
     """Save WMS layer information to config file."""
     try:
-        with open(WMS_CONFIG_FILE, 'w') as f:
+        with open(builtins.WMS_CONFIG_FILE, 'w') as f:
             json.dump(layers, f, indent=2)
-        logger.info(f"Saved WMS layers to {WMS_CONFIG_FILE}")
+        logger.info(f"Saved WMS layers to {builtins.WMS_CONFIG_FILE}")
     except Exception as e:
-        logger.error(f"Error saving WMS layers to {WMS_CONFIG_FILE}: {e}")
+        logger.error(f"Error saving WMS layers to {builtins.WMS_CONFIG_FILE}: {e}")
 
 
 def select_region_of_interest(las_file_path: str) -> Optional[Dict[str, float]]:
@@ -125,10 +122,9 @@ def select_region_of_interest(las_file_path: str) -> Optional[Dict[str, float]]:
         maxy = np.max(y) + buffer_y
 
         # Use new layer_manager functions
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'utils', 'Flood', 'wms_layers.json')
-        layers_dict = load_wms_layers(config_path)
+        layers_dict = load_geo_layers(builtins.WMS_CONFIG_FILE)
         plot_order = get_plot_order(layers_dict)
-        wms_images, shp_geoms = preload_layers(layers_dict, plot_order, minx, maxx, miny, maxy, WMS_WIDTH, WMS_HEIGHT)
+        geo_images, shp_geoms = preload_layers(layers_dict, plot_order, minx, maxx, miny, maxy, LAYER_WIDTH, LAYER_HEIGHT)
 
         # --- PyQt5 GUI with Matplotlib FigureCanvas and controls ---
         app = QApplication.instance()
@@ -201,9 +197,9 @@ def select_region_of_interest(las_file_path: str) -> Optional[Dict[str, float]]:
                             patches.Patch(color=fill_color, label=layer.get('name', 'LIDAR Points'), alpha=alpha)
                         )
                 # --- WMS Layer ---
-                elif key in wms_images and wms_images[key] is not None:
+                elif key in geo_images and geo_images[key] is not None:
                     legend = layer.get('legend', False)
-                    ax.imshow(wms_images[key], extent=[minx, maxx, miny, maxy], alpha=alpha, zorder=zorder)
+                    ax.imshow(geo_images[key], extent=[minx, maxx, miny, maxy], alpha=alpha, zorder=zorder)
                     if legend:
                         legend_elements.append(
                             patches.Patch(color='gray', label=layer.get('name', key), alpha=alpha)

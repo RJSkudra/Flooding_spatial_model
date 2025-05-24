@@ -4,13 +4,17 @@ Main interface for selecting between DEM generation and flood simulation.
 
 import os
 import sys
+import builtins
+from src.utils.path_utils import get_dir
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
 from src.FloodGIF_scripts.Flood_GIF import main as flood_gif_main
 from src.Lidar2Dem_scripts.Lidar2Dem import main as lidar2dem_main
 from src.utils.layers.layer_editor import WmsLayerEditorWindow
 
+builtins.WMS_CONFIG_FILE = os.path.join(get_dir("src"), "utils", "layers", "layers.json")
+
 def ensure_data_folders():
-    base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dati")
+    dati_dir = get_dir("dati")
     subfolders = [
         "dem_faili",
         "izejas_dati",
@@ -18,10 +22,10 @@ def ensure_data_folders():
         "shp_dati",
         "tmp"
     ]
-    if not os.path.exists(base_dir):
-        os.makedirs(base_dir)
+    if not os.path.exists(dati_dir):
+        os.makedirs(dati_dir)
     for sub in subfolders:
-        sub_path = os.path.join(base_dir, sub)
+        sub_path = os.path.join(dati_dir, sub)
         if not os.path.exists(sub_path):
             os.makedirs(sub_path)
 

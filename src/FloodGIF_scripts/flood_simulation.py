@@ -6,9 +6,7 @@ import logging
 import numpy as np
 import rasterio
 from heapq import heappush, heappop
-from shapely.geometry import LineString
 from typing import Tuple, Any
-from collections import deque
 import geopandas as gpd
 from rasterio import features
 from shapely.geometry import shape
@@ -84,25 +82,71 @@ def simulate_flood(dem_array: np.ndarray, source_point: Tuple[float, float], dem
             heappush(queue, (dem_array[nr, nc], nr, nc))
     return flood_array
 
+def simulate_flood_frames(dem_array: np.ndarray, source_point: Tuple[float, float], dem_transform: Any, num_frames: int = 100) -> list:
+    """
+    Simulates the spread of flood water and returns a list of flood masks for animation.
+    Ensures that the returned frames show the progression of flooding over time.
+    """
+    flood_array = np.zeros_like(dem_array, dtype=bool)
+    visited = np.zeros_like(dem_array, dtype=bool)
+    all_frames = []
+    try:
+        row, col = rasterio.transform.rowcol(dem_transform, source_point[0], source_point[1])
+    except Exception as e:
+        logger.error(f"Error determining source point location: {e}")
+        return []
+    if not (0 <= row < dem_array.shape[0] and 0 <= col < dem_array.shape[1]):
+        return []
+    queue = []
+    heappush(queue, (dem_array[row, col], row, col))
+    max_water_level = dem_array[row, col]
+    while queue or np.any(~visited):
+        if queue:
+            elevation, r, c = heappop(queue)
+            if visited[r, c]:
+                continue
+            visited[r, c] = True
+            flood_array[r, c] = True
+            max_water_level = max(max_water_level, elevation)
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nr, nc = r + dr, c + dc
+                if (
+                    0 <= nr < dem_array.shape[0]
+                    and 0 <= nc < dem_array.shape[1]
+                    and not visited[nr, nc]
+                    and dem_array[nr, nc] <= max_water_level
+                ):
+                    heappush(queue, (dem_array[nr, nc], nr, nc))
+        else:
+            next_water_level = float('inf')
+            for r, c in zip(*np.where(flood_array)):
+                for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    nr, nc = r + dr, c + dc
+                    if (
+                        0 <= nr < dem_array.shape[0]
+                        and 0 <= nc < dem_array.shape[1]
+                        and not visited[nr, nc]
+                        and dem_array[nr, nc] > max_water_level
+                    ):
+                        next_water_level = min(next_water_level, dem_array[nr, nc])
+            if next_water_level == float('inf'):
+                break
+            max_water_level = next_water_level
+            continue
 
+        # Append a copy of the flood array at every step
+        all_frames.append(flood_array.copy())
 
-# def simulate_flood_old(dem_array: np.ndarray, source_point: Tuple[float, float], dem_transform: Any) -> np.ndarray:
-#     """
-#     Simulates the spread of flood water from a source point over a DEM array.
+    # Downsample or interpolate frames to match num_frames
+    if len(all_frames) > num_frames:
+        # Evenly sample num_frames from all_frames
+        idxs = np.linspace(0, len(all_frames) - 1, num_frames, dtype=int)
+        frames = [all_frames[i] for i in idxs]
+    else:
+        # If not enough frames, pad with the last frame
+        frames = all_frames + [all_frames[-1]] * (num_frames - len(all_frames))
 
-#     Args:
-#         dem_array (np.ndarray): The digital elevation model array.
-#         source_point (Tuple[float, float]): The coordinates of the flood source point.
-#         dem_transform (Any): The transformation object for the DEM.
-
-#     Returns:
-#         np.ndarray: A boolean array indicating flooded areas.
-#     """
-#     flood_array = np.zeros_like(dem_array, dtype=bool)
-#     visited = np.zeros_like(dem_array, dtype=bool)
-
-    return flood_frames
-
+    return frames
 
 def update_flood_frame(frame: int, dem_array: np.ndarray, dem_transform: Any, water_source_point: Tuple[float, float], dam_points: list, ax: Any, show: Any, topo_cmap: Any, new_cmap: Any, progress_bar: Any, water_elevations: list, flooded_areas: list, num_frames: int, flood_array: np.ndarray, visited: np.ndarray, queue: list) -> None:
     """

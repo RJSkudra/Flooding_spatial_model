@@ -7,19 +7,11 @@ import os
 import sys
 import logging
 import rasterio
-import pdal
 import json
-import time
-from tqdm import tqdm
-from typing import Optional, Dict, Any
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+from src.utils.path_utils import get_dir
 from src.FloodGIF_scripts.visualization_utils import select_region_of_interest
-import laspy
 from src.utils.dem_utils import load_dem, save_dem_as_jpeg
-from PyQt5.QtWidgets import QApplication
-from PIL import Image
+import shutil
 import numpy as np
 from scipy.interpolate import griddata
 # Import custom rendering configuration
@@ -68,11 +60,8 @@ def main():
 
     logger = logging.getLogger(__name__)
 
-    # Iegūstam bāzes direktoriju (repozitorija sakni)
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
     # Definējam lidar_data direktoriju
-    lidar_data_dir = os.path.join(base_dir, "src", "lidar_data")
+    lidar_data_dir = os.path.join(get_dir("dati"), "lidar_dati")
 
     # Atrodam visus LAS failus lidar_data direktorijā
     las_files = []
@@ -85,18 +74,7 @@ def main():
     except Exception as e:
         logger.error(f"LAS failu meklēšanas kļūda: {e}")
 
-    # Ja primārajā atrašanās vietā faili nav atrasti, mēģinām alternatīvas vietas
-    if not las_files:
-        current_dir = os.getcwd()
-        alternative_lidar_dir = os.path.join(current_dir, "src", "lidar_data")
-        try:
-            if os.path.exists(alternative_lidar_dir):
-                for file in os.listdir(alternative_lidar_dir):
-                    if file.lower().endswith('.las'):
-                        las_path = os.path.join(alternative_lidar_dir, file)
-                        las_files.append(las_path)
-        except Exception as e:
-            logger.error(f"Alternatīvās vietas kļūda: {e}")
+
 
     # Pārliecināmies, ka mums ir vismaz viens fails apstrādei
     if not las_files:
@@ -123,7 +101,7 @@ def main():
     # Generate a unique string for extents
     ext_str = f"{selected_region['minx']:.2f}_{selected_region['miny']:.2f}_{selected_region['maxx']:.2f}_{selected_region['maxy']:.2f}"
     DEM_OUTPUT_FILENAME = f"hydro_dem_output_{ext_str}.tif"
-    output_file = os.path.join(base_dir, "dem_data", DEM_OUTPUT_FILENAME)
+    output_file = os.path.join(get_dir("dati"), "dem_faili", DEM_OUTPUT_FILENAME)
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # Definējam ceļu pagaidu failiem tajā pašā mapē kā izvades fails
@@ -134,18 +112,16 @@ def main():
         print(f"[DEBUG] Entering DEM caching/generation logic. Output file: {output_file}")
         # --- CACHING LOGIC START ---
         # Generate a unique cache filename based on extents
-        cache_dir = os.path.join(base_dir, "src", CACHE_DIRNAME)
+        cache_dir = os.path.join(get_dir("dati"), CACHE_DIRNAME)
         os.makedirs(cache_dir, exist_ok=True)
         cache_file = os.path.join(cache_dir, f"dem_cache_{ext_str}.tif")
 
         if os.path.exists(cache_file):
             print(f"[DEBUG] Cache file found: {cache_file}. Copying to output.")
-            import shutil
             shutil.copy2(cache_file, output_file)
             las_metadata = extract_las_metadata(las_file_for_selection)
             ensure_georeferencing(output_file, las_metadata)
             # Generate JPEG preview after copying from cache
-            from utils.dem_utils import load_dem, save_dem_as_jpeg
             dem_data, dem_array, _ = load_dem(output_file)
             # Fill DEM holes with NaN before saving preview
             dem_array = np.where(dem_array == -9999, np.nan, dem_array)
@@ -190,7 +166,6 @@ def main():
             print(f"Apstrādājam DEM failu: {raw_dem_file}")
             ensure_georeferencing(raw_dem_file, las_metadata)
             print("Georeference faila nodrošināšana pabeigta.")
-            import shutil
             try:
                 # Load DEM as array
                 with rasterio.open(raw_dem_file) as src:
@@ -228,7 +203,6 @@ def main():
                     ensure_georeferencing(output_file, las_metadata)
                     shutil.copy2(raw_dem_file, cache_file)
                     # Generate JPEG preview after fallback copy
-                    from utils.dem_utils import load_dem, save_dem_as_jpeg
                     dem_data, dem_array, _ = load_dem(output_file)
                     # Fill DEM holes with NaN before saving preview
                     dem_array = np.where(dem_array == -9999, np.nan, dem_array)

@@ -2,11 +2,13 @@
 import os
 import sys
 import json
+from src.utils.path_utils import get_dir
 
+save_dir = os.path.join(get_dir("dati"), "izejas_dati")
 # Default configuration
 DEFAULT_CONFIG = {
     "backend": "QtAgg",  # Default backend (QtAgg, TkAgg, or Agg)
-    "save_dir": "rendered_output",  # Directory to save rendered images
+    "save_dir": save_dir,  # Directory to save rendered images
     "auto_save": True,  # Always save rendered images to disk
     "auto_display": True,  # Try to display images interactively
     "figure_dpi": 150  # Resolution for saved images

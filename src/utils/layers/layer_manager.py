@@ -13,9 +13,11 @@ import requests
 import io
 import matplotlib.image as mpimg
 
+from src.utils.path_utils import get_dir
+
 logger = logging.getLogger(__name__)
 
-def load_wms_layers(config_path: str) -> Dict[str, Any]:
+def load_geo_layers(config_path: str) -> Dict[str, Any]:
     """
     Load WMS layers configuration from a JSON file.
 
@@ -68,7 +70,7 @@ def preload_layers(
         Tuple[Dict[str, np.ndarray], Dict[str, gpd.GeoDataFrame]]: 
         Dictionary of WMS images and dictionary of shapefile geometries.
     """
-    cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../tmp'))
+    cache_dir = os.path.abspath(os.path.join(get_dir("dati"), "tmp", "wms_cache"))
     os.makedirs(cache_dir, exist_ok=True)
     wms_images = {}
     shp_geoms = {}
@@ -164,7 +166,7 @@ def preload_layers(
                     cropped = stitched.crop((left, upper, right, lower)).resize((width, height), Image.LANCZOS)
                     img = np.array(cropped)
                     print(f"[DEBUG] ArcGIS tile image shape: {img.shape}, dtype: {img.dtype}")
-                    debug_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../tmp'))
+                    debug_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../dati/tmp'))
                     stitched.save(os.path.join(debug_dir, f"arcgis_stitched_{key}_epsg3059.png"))
                     cropped.save(os.path.join(debug_dir, f"arcgis_cropped_{key}_epsg3059.png"))
                     np.save(wms_cache_file, img)

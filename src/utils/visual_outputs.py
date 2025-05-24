@@ -98,8 +98,8 @@ def create_flood_animation(
         if hasattr(ax, 'figure'):
             if not hasattr(ax, '_flood_colorbar') or ax._flood_colorbar is None:
                 ax._flood_colorbar = ax.figure.colorbar(sm_flood, ax=ax, orientation='vertical', fraction=0.025, pad=0.08, label='Nopludinātais laukums')
-
-    ani = FuncAnimation(fig, lambda frame: frame_func(frame, flood_frames), frames=np.arange(0, num_frames), repeat=False)
+    actual_num_frames = len(flood_frames)
+    ani = FuncAnimation(fig, lambda frame: frame_func(frame, flood_frames), frames=np.arange(0, actual_num_frames), repeat=False)
     gif_output_path = get_output_path('flood_simulation.gif')
     ani.save(gif_output_path, writer=PillowWriter(fps=FPS))
     progress_bar.close()
@@ -156,7 +156,8 @@ def create_combined_flood_animation(
     water_elevations = []
     flooded_areas = []
     num_frames = getattr(builtins, 'num_frames', 100)
-    progress_bar = tqdm(total=num_frames+1, desc="Generating Combined GIF Animation")
+    actual_num_frames = len(flood_frames)
+    progress_bar = tqdm(total=actual_num_frames, desc="Generating Combined GIF Animation")
 
     def frame_func(frame):
         ax_2d.clear()
@@ -191,7 +192,8 @@ def create_combined_flood_animation(
         ax_flooded_area.tick_params(axis='y', labelcolor='green')
         ax_flooded_area.set_title('Nopludinātais laukums')
 
-    ani = FuncAnimation(combined_fig, frame_func, frames=np.arange(0, num_frames), repeat=False)
+    actual_num_frames = len(flood_frames)
+    ani = FuncAnimation(combined_fig, frame_func, frames=np.arange(0, actual_num_frames), repeat=False)
     combined_gif_output_path = get_output_path('combined_flood_simulation.gif')
     ani.save(combined_gif_output_path, writer=PillowWriter(fps=FPS))
     progress_bar.close()

@@ -18,7 +18,7 @@
   },
   "augsnes_karte": {
     "type": "shapefile",
-    "path": "../../../src/shp_data/Augsnu_karte/Augsnes_5v_2017.shp",
+    "path": "../../../dati/shp_dati/Augsnu_karte/Augsnes_5v_2017.shp",
     "name": "Augsnes karte (Tipi)",
     "filter": {
       "field": "ATips",
@@ -40,7 +40,7 @@
   "LAD K\u016bdraugsne": {
     "type": "shapefile",
     "name": "LAD K\u016bdraugsne",
-    "path": "../../../src/shp_data/kudraugne_LAD/kudraugsne_LAD.shp",
+    "path": "../../../dati/shp_dati/kudraugne_LAD/kudraugsne_LAD.shp",
     "geometry_type": "polygon",
     "fill_color": "#ffff7f",
     "line_color": "#ff0000",
@@ -49,7 +49,7 @@
   },
   "lvm_gravji": {
     "type": "shapefile",
-    "path": "../../../src/shp_data/LVM_GRAVJI/LVM_GRAVJI_Shape.shp",
+    "path": "../../../dati/shp_dati/LVM_GRAVJI/LVM_GRAVJI_Shape.shp",
     "name": "LVM Gr\u0101vji",
     "geometry_type": "line",
     "fill_color": null,

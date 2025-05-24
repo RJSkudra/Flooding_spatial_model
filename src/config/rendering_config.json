@@ -1,6 +1,6 @@
 {
   "backend": "QtAgg",
-  "save_dir": "rendered_output",
+  "save_dir": "d:\\GitHub\\Flooding_spatial_model\\Flooding_spatial_model\\dati\\izejas_dati",
   "auto_save": true,
   "auto_display": true,
   "figure_dpi": 150

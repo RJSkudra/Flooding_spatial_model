@@ -10,23 +10,27 @@ import json
 import glob
 import numpy as np
 import rasterio
-import geopandas as gpd
 import rasterio.features
 import matplotlib
+import cProfile
+import pstats
+import threading
+import builtins
+from src.FloodGIF_scripts.flood_simulation import export_flood_to_shapefile
+from src.utils.visual_outputs import create_flood_animation, create_combined_flood_animation
+from src.utils.path_utils import get_dir
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.animation import FuncAnimation, PillowWriter
 from matplotlib.lines import Line2D
 from matplotlib.widgets import PolygonSelector
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
-import builtins
+from src.FloodGIF_scripts.flood_simulation import simulate_flood, simulate_flood_frames
 from src.config.rendering_config import setup_rendering, get_output_path
 from src.utils.dem_utils import load_dem, validate_lks97_coords, modify_dem_with_dam_line, save_dem_as_jpeg
-from src.utils.visual_outputs import create_flood_animation
 from src.FloodGIF_scripts.ui import DrawingWindow
 from src.FloodGIF_scripts.flood_simulation import update_flood_frame
-from src.FloodGIF_scripts.visualization_utils import load_wms_layers
-from src.utils.layers.layer_manager import load_wms_layers, get_plot_order, preload_layers
+from src.FloodGIF_scripts.visualization_utils import load_geo_layers
+from src.utils.layers.layer_manager import load_geo_layers, preload_layers
 
 # Configure matplotlib rendering before importing pyplot
 config = setup_rendering(matplotlib)
@@ -71,18 +75,18 @@ topo_cmap = LinearSegmentedColormap.from_list('topo_colormap', topo_colors, N=25
 event_cid = {'dam': None, 'source': None}
 
 # Load WMS layers config (if available)
-wms_layers = None
+geo_layers = None
 try:
-    wms_config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils', 'Flood', 'wms_layers.json'))
+    wms_config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils', 'layers', 'layers.json'))
     if os.path.exists(wms_config_path):
         with open(wms_config_path, 'r', encoding='utf-8') as f:
-            wms_layers = json.load(f)
+            geo_layers = json.load(f)
     else:
         # fallback to default loader
-        wms_layers = load_wms_layers(wms_config_path)
+        geo_layers = load_geo_layers(wms_config_path)
 except Exception as e:
-    print(f"[WARN] Could not load WMS layers: {e}")
-    wms_layers = None
+    print(f"[WARN] Could not load layers: {e}")
+    geo_layers = None
 
 def on_dam_click(event: matplotlib.backend_bases.MouseEvent) -> None:
     """
@@ -149,7 +153,7 @@ def create_animation() -> None:
     """
     Creates the flood animation and the combined animation.
     """
-    import threading
+    
     if threading.current_thread() is threading.main_thread():
         print("[WARNING] Flood simulation and animation are running in the main thread. This may freeze the UI. Consider running heavy computations in a background thread or precomputing results before animation.")
     if water_source_point and len(dam_points) == 2:
@@ -163,11 +167,13 @@ def create_animation() -> None:
             row, col = 0, 0  # fallback
 
         # Run the flood simulation ONCE
-        from FloodGIF_scripts.flood_simulation import simulate_flood_numba
-        num_frames = builtins.num_frames
-        flood_frames = simulate_flood_numba(dem_array, row, col, num_frames)
 
-        from utils.visual_outputs import create_flood_animation, create_combined_flood_animation, export_last_frame_as_jpeg
+        num_frames = builtins.num_frames
+        
+        flood_frames = simulate_flood_frames(dem_array, (water_source_point[0], water_source_point[1]), dem_transform, num_frames)
+        actual_num_frames = len(flood_frames)
+
+        
 
         create_flood_animation(fig, ax, dem_array, dem_transform, flood_frames, water_source_point, dam_points, topo_cmap, new_cmap, update_flood_frame)
         create_combined_flood_animation(fig, ax, dem_array, dem_transform, flood_frames, water_source_point, dam_points, topo_cmap, new_cmap, update_flood_frame)
@@ -185,7 +191,7 @@ def create_animation() -> None:
             print(f"Total flooded area: {total_flooded_area:.2f} m²")
             print(f"Flooded area inside LAD Kūdraugsne: {area_kudraugsne:.2f} m²")
             print(f"Flooded area inside deklarētie lauki 2025: {area_deklar_lauki:.2f} m²")
-        from FloodGIF_scripts.flood_simulation import export_flood_to_shapefile
+        
         print(f"Exporting flood to shapefile...")
         export_flood_to_shapefile(flood_frames[-1], dem_transform, get_output_path("flooded_area.shp"))
 
@@ -218,7 +224,7 @@ def main(existing_app=None):
     global window
     print("Flood_GIF.main() called.")
     # DEM selection logic (moved from top level)
-    DEM_DIR = './src/dem_data/'
+    DEM_DIR = './dati/dem_faili/'
     dem_files = glob.glob(os.path.join(DEM_DIR, '*.tif'))
     if not dem_files:
         QMessageBox.critical(None, "DEM Error", f"No DEM .tif files found in {DEM_DIR}")
@@ -239,8 +245,8 @@ def main(existing_app=None):
     bounds = dem_data.bounds
     minx, maxx, miny, maxy = bounds.left, bounds.right, bounds.bottom, bounds.top
     # Load WMS layers config and plot order
-    wms_config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils', 'Flood', 'wms_layers.json'))
-    layers_dict = load_wms_layers(wms_config_path)
+    wms_config_path = os.path.abspath(os.path.join(get_dir("src"), 'utils', 'layers', 'layers.json'))
+    layers_dict = load_geo_layers(wms_config_path)
     plot_order = layers_dict.get('plot_order', [k for k in layers_dict if k != 'plot_order'])
     # Preload WMS/shapefile/ArcGIS overlays for the DEM extent
     wms_images, shp_geoms = preload_layers(layers_dict, plot_order, minx, maxx, miny, maxy)
@@ -264,8 +270,7 @@ def main(existing_app=None):
         app.exec_()
 
 if __name__ == '__main__':
-    import cProfile
-    import pstats
+
     profiler = cProfile.Profile()
     profiler.enable()
     main()
